@@ -58,25 +58,52 @@ namespace ValidadorJornada.ViewModels
         #region Propriedades
 
         public string AppVersion => VersionInfo.FullVersionWithDate;
-		
+        
+        // ✅ CORRIGIDO: Auto-formatação em tempo real (código antigo restaurado)
         public string Horarios
         {
             get => _horarios;
             set
             {
-                _horarios = value;
-                OnPropertyChanged();
+                if (AutoFormatarHorarios && !string.IsNullOrWhiteSpace(value))
+                {
+                    var formatado = HorarioFormatter.FormatarHorarios(value);
+                    if (_horarios != formatado)
+                    {
+                        _horarios = formatado;
+                        OnPropertyChanged();
+                    }
+                }
+                else
+                {
+                    _horarios = value;
+                    OnPropertyChanged();
+                }
+                
                 VerificarModoJornadaSabado();
             }
         }
 
+        // ✅ CORRIGIDO: Auto-formatação em tempo real (código antigo restaurado)
         public string HorariosDomingoFeriado
         {
             get => _horariosDomingoFeriado;
             set
             {
-                _horariosDomingoFeriado = value;
-                OnPropertyChanged();
+                if (AutoFormatarHorarios && !string.IsNullOrWhiteSpace(value))
+                {
+                    var formatado = HorarioFormatter.FormatarHorarios(value);
+                    if (_horariosDomingoFeriado != formatado)
+                    {
+                        _horariosDomingoFeriado = formatado;
+                        OnPropertyChanged();
+                    }
+                }
+                else
+                {
+                    _horariosDomingoFeriado = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -209,6 +236,7 @@ namespace ValidadorJornada.ViewModels
 
         #region Validação
 
+        // ✅ CORRIGIDO: Formatação removida (já acontece no setter)
         private async Task ValidarAsync()
         {
             if (IsLoading || _disposed) return;
@@ -225,26 +253,7 @@ namespace ValidadorJornada.ViewModels
 
                 await Task.Delay(100);
 
-                if (AutoFormatarHorarios)
-                {
-                    await Task.Run(() =>
-                    {
-                        if (_disposed) return;
-                        
-                        if (HorarioFormatter.PrecisaFormatar(Horarios))
-                        {
-                            var formatado = HorarioFormatter.FormatarHorarios(Horarios);
-                            App.Current.Dispatcher.Invoke(() => Horarios = formatado);
-                        }
-                        
-                        if (!string.IsNullOrWhiteSpace(HorariosDomingoFeriado) && 
-                            HorarioFormatter.PrecisaFormatar(HorariosDomingoFeriado))
-                        {
-                            var formatado = HorarioFormatter.FormatarHorarios(HorariosDomingoFeriado);
-                            App.Current.Dispatcher.Invoke(() => HorariosDomingoFeriado = formatado);
-                        }
-                    });
-                }
+                // ❌ REMOVIDO: Formatação duplicada
 
                 await Task.Run(() =>
                 {
